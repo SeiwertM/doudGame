@@ -1,0 +1,228 @@
+<script src="/socket.io/socket.io.js"></script>
+Pioche :<br />
+<span class="Pioche" id="Pioche"></span><br /><br />
+Défausse :<br />
+<span id="DefCard"></span><br /><br />
+Pulsation :<button type="button" OnClick="PulsationFct()">+</button><br />
+<span id="ValPulsation"></span><br /><br />
+Mesure :<button type="button" OnClick="ResetMesure()">Reset</button><br />
+<span id="ValMesure"></span><br /><br />
+
+<button type="button" OnClick="Pioche()">Prendre Pioche</button> <span id="PiocheDone" style="opacity : 0;">Done</span><br /><br />
+<button type="button" OnClick="Defausse()">Prendre Defausse</button> <span id="DefDone" style="opacity : 0;">Done</span><br /><br />
+<button type="button" OnClick="Alea()">Carte Aléatoire</button> <span id="AleaDone" style="opacity : 0;">Done</span><br /><br />
+<br /><br /><br /><br />
+<button type="button" OnClick="ResetDeck()">Reset Deck</button> <span id="ResetDone" style="opacity : 0;">Done</span><br />
+<textarea id="handCards" rows="20" cols="10">
+</textarea><br /><br />
+Base Deck<br />
+<textarea id="baseDeck" rows="20" cols="10">
+do
+do
+do
+do
+do#
+do#
+do#
+do#
+ré
+ré
+ré
+ré
+ré#
+ré#
+ré#
+ré#
+Mi
+Mi
+Mi
+Mi
+Fa
+Fa
+Fa
+Fa
+Fa#
+Fa#
+Fa#
+Fa#
+Sol
+Sol
+Sol
+Sol
+Sol#
+Sol#
+Sol#
+Sol#
+La
+La
+La
+La
+La#
+La#
+La#
+La#
+Si
+Si
+Si
+Si
+#
+#
+#
+#
+#
+#
+♭
+♭
+♭
+♭
+♭
+♭
+I
+I
+V
+V</textarea>
+
+<script>
+
+	var currDeck = null;
+	var pulsation = 0
+	var mesure = 0
+	var isReady = 0
+
+	var ddd = azerty
+	
+	alert(JSON.stringify(ddd))
+
+	ResetDeck()
+	Pioche()
+	PulsationFct()
+	MesureFct()
+	
+	
+	function opacity(el,text = "Done", timer = 1000){
+		el.textContent = text
+		if(!isReady)
+		{
+			el.style.opacity = '0'
+			return 0;
+		}
+		el.style.transition = "opacity 0s"
+		el.style.opacity = '1'
+		setTimeout( () =>{
+			el.style.transition = "opacity 2s"
+			el.style.opacity = '0'
+		},timer)
+	}
+	
+	function CopyClip(myCode){
+		var fullLink = document.createElement('input');
+		document.body.appendChild(fullLink);
+		fullLink.value = myCode;
+		fullLink.select();
+		document.execCommand("copy", false);
+		fullLink.remove();
+		return myCode
+	}
+	
+	function PulsationFct(){
+		pulsation++
+		if(pulsation > 4){
+			pulsation = 1
+			MesureFct()
+		}
+		document.getElementById("ValPulsation").textContent = pulsation
+	}
+	function ResetMesure(){
+		pulsation = 0
+		mesure = 0
+		PulsationFct()
+		MesureFct()
+
+	}
+	function MesureFct(){
+		mesure++
+		document.getElementById("ValMesure").textContent = mesure
+	}
+	
+	function Pioche(isForced = false){
+		val = CopyClip(document.getElementById("Pioche").textContent)
+		document.getElementById("Pioche").textContent = ChoseCard()
+		if(!isForced){
+			document.execCommand('copy')
+			opacity(document.getElementById("PiocheDone"),val)
+		}
+	}
+	function Defausse(){
+		val = CopyClip(document.getElementById("DefCard").textContent)
+		document.getElementById("DefCard").textContent = ""
+		opacity(document.getElementById("DefDone"),val)
+	}
+	function Alea(){
+		var val = ChoseCard();
+		document.getElementById("DefCard").textContent = document.getElementById("Pioche").textContent
+		Pioche(true)
+		CopyClip(val)
+		document.getElementById("AleaDone").textContent = val
+		opacity(document.getElementById("AleaDone"),val,5000)
+	}
+	
+	function ChoseCard(){
+		var valueChose = Math.floor(Math.random() * currDeck.length)
+		var valueCard = currDeck[valueChose]
+		currDeck.splice(valueChose,1)
+		return valueCard;
+	}
+	function ResetDeck(){
+		currDeck = document.getElementById("baseDeck").value.split("\n");
+		var handCards = document.getElementById("handCards").value.split("\n");
+		handCards.push(document.getElementById("Pioche").textContent)
+		handCards.push(document.getElementById("DefCard").textContent)
+		var i = -1;
+		while(handCards.length > 0){ 
+			while(handCards[0] == "")
+				handCards.splice(0, 1);
+			if(handCards.length <= 0)
+				break
+			i++
+			if(i >= currDeck.length)
+			{
+				alert(handCards[0]+" not in deck");
+				handCards.splice(0, 1); 
+				i = 0
+			}
+			if ( currDeck[i].toLowerCase() == handCards[0].toLowerCase()) { 
+				currDeck.splice(i, 1); 
+				handCards.splice(0, 1); 
+				i = -1
+			}
+    
+		}
+		opacity(document.getElementById("ResetDone"))
+		//var valueChose = Math.floor(Math.random() * currDeck.length)
+		//alert(valueChose+" "+currDeck[valueChose])
+		//currDeck.splice(valueChose,1)
+		//alert(currDeck)
+	}
+	isReady = 1
+
+	
+	/*async function fetchText() {
+		let response = await fetch("./", {
+			method: "POST", 
+			body: JSON.stringify(ddd)
+			})
+
+		console.log(response.status); // 200
+		console.log(response.statusText); // OK
+
+		if (response.status === 200) {
+			let data = await response.text();
+			// handle data
+			console.log(data)
+		}
+	}
+
+	fetchText();*/
+
+	var socket = io();
+</script>
